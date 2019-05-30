@@ -3,19 +3,41 @@
 <head lang="en">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
-	<link rel="shortcut icon" href="favicon.ico">
-	<link rel="icon" type="image/icon" href="favicon.ico">
-    <title>Karbowanec (&#1180;) [KRB] Block Explorer</title>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+	<!-- https://realfavicongenerator.net/favicon_result?file_id=p1dc0n8hb116bcegl1ktek7r1t0u6 -->
+	<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png?v=XCYp5nd6kM">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png?v=XCYp5nd6kM">
+	<link rel="icon" type="image/png" sizes="192x192" href="/favicons/android-chrome-192x192.png?v=XCYp5nd6kM">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png?v=XCYp5nd6kM">
+	<link rel="manifest" href="/favicons/site.webmanifest?v=XCYp5nd6kM">
+	<link rel="mask-icon" href="/favicons/safari-pinned-tab.svg?v=XCYp5nd6kM" color="#5bbad5">
+	<link rel="shortcut icon" href="/favicons/favicon.ico?v=XCYp5nd6kM">
+	<meta name="apple-mobile-web-app-title" content="Block Explorer">
+	<meta name="application-name" content="Block Explorer">
+	<meta name="msapplication-TileColor" content="#2d89ef">
+	<meta name="msapplication-config" content="/favicons/browserconfig.xml?v=XCYp5nd6kM">
+	<meta name="theme-color" content="#ffffff">
+	<!-- https://realfavicongenerator.net/favicon_result?file_id=p1dc0n8hb116bcegl1ktek7r1t0u6 -->
+
+    <title>CyprusCoin [XCY] Block Explorer</title>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/countdown/2.6.0/countdown.min.js"></script>
+	
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
-    <link href="css/themes/bootstrap.min.css" rel="stylesheet">
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="//fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css">
-    <script src="config.js"></script>
-    <script src="js/cookie.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>	
+
+	<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" type="text/css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Inconsolata" type="text/css">
+
+	<script src="config.js"></script>
+	<script src="js/cookie.js"></script>
+	
 	<link type="text/css" rel="stylesheet" href="css/themes/default-theme.css">
+	<link id="theme" type="text/css" rel="stylesheet" href="css/themes/xcy-theme.css">
 </head>
 <body>
 <script>
@@ -23,31 +45,46 @@
 	var blockchainExplorer 	= "./?hash={id}#blockchain_block";
 	var transactionExplorer = "./?hash={id}#blockchain_transaction";
 	var paymentIdExplorer 	= "./?hash={id}#blockchain_payment_id";
-	
-	$(function(){
-
-		$("head").append('<link id="theme" type="text/css" rel="stylesheet" href="' + whiteTheme + '">');
-
-		var loadCSS = function() {
-			var value = $.cookie('night_mode');
-			$('.switch-checkbox').prop('checked', (value === 'true'));
-
-			if (value === 'true') {
-				$('#theme').attr('href', nightTheme);
-
-			} else {
-				$('#theme').attr('href', whiteTheme);			
+    
+	var currentNetowork; 
+  
+	var switchNetwork = function() {
+		var value = $.cookie('network_switch');
+		var network = (value === 'true' ? 'testnet' : 'mainnet');
+		if (typeof(currentNetowork) != "undefined") {
+			if (currentNetowork != network) {
+				window.location.href = location.protocol + "//" + location.host + location.pathname;
+				
 			}
-		};
-		loadCSS();
+		}
+		$('.switch-checkbox').prop('checked', (value === 'true'));
 
-		var toggleCSS = function(value) {
-			$.cookie('night_mode', value, { expires: 365, path: '/' });
-			loadCSS();
-		};
+		if (typeof(xhrGetBlocks) != "undefined") {
+			if(xhrGetBlocks) {
+				xhrGetBlocks.abort();
+			}
+		}
+		api                 = _networks[network].api;
+		blockTargetInterval = _networks[network].blockTargetInterval;
+		totalSupply         = _networks[network].totalSupply;
+		coinUnits           = _networks[network].coinUnits;
+		symbol              = _networks[network].symbol;
+		whiteTheme          = _networks[network].whiteTheme;
+		nightTheme          = _networks[network].nightTheme;
+		poolsStat           = _networks[network].poolsStat;
+		nodesStat           = _networks[network].nodesStat;
+		currentNetowork = network;
+	};
 
+	var toggleNetwork = function(value) {
+		$.cookie('network_switch', value, { expires: 365, path: '/' });
+		switchNetwork();
+	};
+
+	$(function(){
+		switchNetwork();
 		$('.switch-checkbox').on('change', function() {
-			toggleCSS(this.checked);
+			toggleNetwork(this.checked);
 		});
 	});
 	
@@ -112,13 +149,22 @@
         return (difficulty / Math.pow(1000, Math.floor(number))).toFixed(precision) + ' ' +  units[number];
     }
 	
+	function getNextNetworkUpgrade(upgradeHeights, currentHeight, currentSupportedHeight) {
+		var nextHeight = upgradeHeights[upgradeHeights.indexOf(currentSupportedHeight)+1];
+		var blocksToGo = nextHeight - currentHeight;
+		var seconds = blocksToGo * blockTargetInterval;
+		return countdown(null, moment().add(seconds, 'seconds'), countdown.DEFAULTS,2).toString();
+	}
+
     function formatBlockLink(hash){
         return '<a href="' + getBlockchainUrl(hash) + '">' + hash + '</a>';
     }
 
     function getReadableCoins(coins, digits, withoutSymbol){
-        var amount = (parseInt(coins || 0) / coinUnits).toFixed(digits || coinUnits.toString().length - 1);
-        return amount + (withoutSymbol ? '' : (' ' + symbol));
+		var amount = (parseInt(coins || 0) / coinUnits).toFixed(digits || coinUnits.toString().length - 1);
+		var amount2 = amount.split(".");
+		amount2[0] = parseInt(amount2[0]).toLocaleString()
+        return amount2.join('.') + (withoutSymbol ? '' : (' ' + symbol));
     }
 
     function formatDate(time){
@@ -175,15 +221,16 @@
 	function nodeInfo() {
         if(nodeStatus) {
 			$('#node_connection').html('Online').addClass('text-success').removeClass('text-danger');
-			$('#node_height').html(parseInt(lastStats['height']));
-			$('#node_block').html(parseInt(lastStats['last_known_block_index']));
-			$('#node_diff').html(parseInt(lastStats['difficulty']));
-			$('#node_alt').html(parseInt(lastStats['alt_blocks_count']));
+			$('#node_height').html(parseInt(lastStats['height']).toLocaleString());
+			$('#node_block').html(parseInt(lastStats['last_known_block_index']).toLocaleString());
+			$('#node_diff').html(parseInt(lastStats['difficulty']).toLocaleString());
+			$('#node_alt').html(parseInt(lastStats['alt_blocks_count']).toLocaleString());
 			$('#node_rpc').html(parseInt(lastStats['rpc_connections_count']));
-			$('#node_inc').html(parseInt(lastStats['incoming_connections_count']));
-			$('#node_out').html(parseInt(lastStats['outgoing_connections_count']));
-			$('#node_white').html(parseInt(lastStats['white_peerlist_size']));
-			$('#node_grey').html(parseInt(lastStats['grey_peerlist_size']));
+			$('#node_testnet').html(lastStats['testnet'] ? "YES" : "No");
+			$('#node_inc').html(parseInt(lastStats['incoming_connections_count']).toLocaleString());
+			$('#node_out').html(parseInt(lastStats['outgoing_connections_count']).toLocaleString());
+			$('#node_white').html(parseInt(lastStats['white_peerlist_size']).toLocaleString());
+			$('#node_grey').html(parseInt(lastStats['grey_peerlist_size']).toLocaleString());
 			if (lastStats['version'] !== 'undefined'){
 				$('#node_ver').html(lastStats['version']);
 			}
@@ -195,28 +242,34 @@
     var xhrPageLoading;
     function routePage(loadedCallback) {
 
-        if (currentPage) currentPage.destroy();
+        if (currentPage) {
+			currentPage.destroy();
+		}
         $('#page').html('');
         $('#loading').show();
 
-        if (xhrPageLoading)
-            xhrPageLoading.abort();
+        if (xhrPageLoading) {
+			xhrPageLoading.abort();
+		}
 
         $('.hot_link').parent().removeClass('active');
         var $link = $('a.hot_link[href="' + (window.location.hash || '#') + '"]');
 
         $link.parent().addClass('active');
-        var page = $link.data('page');
-
+		var page = $link.data('page');
+		
         xhrPageLoading = $.ajax({
             url: 'pages/' + page,
             cache: false,
             success: function (data) {
                 $('#loading').hide();
                 $('#page').show().html(data);
-                currentPage.init();
-                //currentPage.update();
-                if (loadedCallback) loadedCallback();
+                if(currentPage) {
+					currentPage.init();
+				}
+                if (loadedCallback) {
+					loadedCallback();
+				}
             }
         });
     }
@@ -224,8 +277,11 @@
     function getBlockchainUrl(id) {
         return blockchainExplorer.replace('{id}', id);
 	}
-
-	function getinfo() {
+	
+	function getinfo(delay) {
+		if(delay === undefined) {
+			delay = 1500;
+		}
 		$.ajax({
 			url: api + '/getinfo',
 			timeout: 1500 //in milliseconds
@@ -239,14 +295,15 @@
 			routePage(fetchLiveStats);
 		})
 		.fail(function () {
-			apiList.push(api);
-			api = apiList.shift();
-			getinfo();
+			delay = delay < 30000 ? (delay*2) : 30001;
+			setTimeout(function() {
+				getinfo(delay)
+			}, delay);
 		});
 	}
-	
-    $(function(){
-		getinfo();
+
+	$(function() {
+        getinfo();
     });
 	
     // Blockexplorer functions
@@ -288,33 +345,45 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand " href="./"><span id="coinIcon">&#1180;</span> <strong>Karbo</strong></a>
+            <a class="navbar-brand " href="./"><img src="logo/logo-xcymark-word.svg" onerror="this.src='logo/logo-xcymark-word-30h.png';this.onerror=null;"></a>
 			<div id="stats_updated"><i class="fa fa-bolt"></i></div>
         </div>
 		
         <div class="collapse navbar-collapse">
 		 
             <ul class="nav navbar-nav navbar-left explorer_menu">
-
-			    <li><a class="hot_link menu" data-page="home.html" href="#">
-                    <i class="fa fa-cubes" aria-hidden="true"></i> Explorer
-                </a></li>
 				
-				<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">
-					<i class="fa fa-eye" aria-hidden="true"></i> Monitor <span class="caret"></span></a>
-					<ul id="monitor-menu" class="dropdown-menu">
-					
-						<li><a class="hot_link menu" data-page="pools.html" href="#pools">
-							<i class="fa fa-gavel" aria-hidden="true"></i> Pools
-						</a></li>
-						
-						<li><a class="hot_link menu" data-page="network.html" href="#network">
-							<i class="fa fa-thermometer-quarter" aria-hidden="true"></i> Network
-						</a></li>
+			    <li>
+					<a class="hot_link menu" data-page="home.html" href="#">
+                    	<i class="fa fa-cubes" aria-hidden="true"></i> Explorer
+					</a>
+				</li>
+				<!--
+				<li class="dropdown"><a class="dropdown-toggle hot_link" data-page="home.html" data-toggle="dropdown" href="#">
+					<i class="fas fa-server" aria-hidden="true"></i> Explorer <span class="caret"></span></a>
+					<ul id="explorer-menu" class="dropdown-menu">
+						<li>
+							<a class="hot_link menu" data-page="switch.html" href="#mainnet">
+								<i class="fas fa-link" aria-hidden="true"></i> Mainnet
+							</a>
+						</li>
+
+						<li>
+							<a class="hot_link menu" data-page="switch.html" href="#testnet">
+								<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Testnet
+							</a>
+						</li>
 				
 					</ul>
 				</li>
+				-->
 				
+				<li>
+					<a class="hot_link menu" data-page="network.html" href="#network">
+						<i class="fas fa-binoculars" aria-hidden="true"></i> Network
+					</a>
+				</li>
+				<!--
 				<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">
 					<i class="fa fa-wrench" aria-hidden="true"></i> Tools <span class="caret"></span></a>
 					<ul id="tools-menu" class="dropdown-menu">
@@ -338,12 +407,12 @@
 						</a></li>
 					</ul>
 				</li>
-				
-				<li>
+				-->
+				<li data-toggle="tooltip" data-placement="bottom" data-original-title="Switch between Mainnet and Testnet">
 					<!-- Rounded switch -->		
                     <label class="switch">
                         <input class="switch-checkbox" type="checkbox" />
-                        <span class="switch-slider round"></span>
+                        <span class="switch-slider right round fas"></span>
                     </label>
                 </li>
 				
@@ -352,7 +421,7 @@
                 <li style="display:none;"><a class="hot_link" data-page="blockchain_block.html" href="#blockchain_block"><i class="fa fa-cubes"></i> Block
                 </a></li>
 
-                <li style="display:none;"><a class="hot_link" data-page="blockchain_transaction2.html" href="#blockchain_transaction"><i class="fa fa-cubes"></i> Transaction
+                <li style="display:none;"><a class="hot_link" data-page="blockchain_transaction.html" href="#blockchain_transaction"><i class="fa fa-cubes"></i> Transaction
                 </a></li>
 				
 				<li style="display:none;"><a class="hot_link" data-page="blockchain_payment_id.html" href="#blockchain_payment_id"><i class="fa fa-cubes"></i> Transactions by Payment ID
@@ -364,9 +433,9 @@
 					
 			<div class="nav col-md-6 navbar-right explorer-search">
 				<div class="input-group">
-					<input class="form-control" placeholder="Search by block height / hash, transaction hash, payment id" id="txt_search">
+					<input class="form-control" placeholder="Search by block height / hash, transaction hash" id="txt_search">
 					<span class="input-group-btn"><button class="btn btn-default" type="button" id="btn_search">
-						<span><i class="fa fa-search"></i> Search</span>
+						<span><i class="fa fa-search"></i></span>
 					</button></span>
 				</div>
 			</div>
@@ -526,7 +595,7 @@ $('#txt_search').keyup(function(e){
 
 		<div id="page"></div>
 
-		<p id="loading" class="text-center"><i class="fa fa-circle-o-notch fa-spin"></i></p>
+		<p id="loading" class="text-center"><i class="fas fa-circle-notch fa-spin"></i></p>
 
 	</div>
 </div>
@@ -537,46 +606,50 @@ $('#txt_search').keyup(function(e){
 			<div class="col-lg-4 col-md-4 col-sm-6">
 				<p>
 					<small>
-						&copy; 2017-2018 <strong>Karbo</strong>
+						&copy; 2019 <strong>CyprusCoin</strong>
 					</small>
 				</p>
 				
 				<ul>
-					<li><a href="http://karbo.io/">karbo.io</li>
-					<li><a href="http://karbo.org/">karbo.org</li>
+					<li><a href="http://cypruscoin.club/">CyprusCoin.club</a></li>
+					<li><a href="https://offshorex.exchange/">OffshoreX.exchange</a></li>
+					<li><a href="http://offshore.plus/">Offshore.plus</a></li>
+					<li><a href="https://xcybet.com/">XCYbet.com/</a></li>
+					<li><a href="http://offshore.cards/">Offshore.cards</a></li>
 				</ul>
 				
 			</div>
-			<div class="col-lg-4 col-md-4 col-sm-6">
+			<div class="col-lg-4 col-md-4 col-sm-6 text-center">
 				<p>
 					<small>
 					<!-- This copyright should be left intact -->
 				
-					Powered by <a target="_blank" href="https://github.com/Karbovanets/Karbowanec-Blockchain-Explorer"><i class="fa fa-github"></i> Karbowanec Blockchain Explorer</a>
-					v. 1.1.7.<br />
-					<span class="text-muted">Partially based on <strong>cryptonote-universal-pool</strong><br />
-					open sourced under the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GPL</a></span>
+					Powered by <a target="_blank" href="https://github.com/CyprusCoinClub/block-explorer"><i class="fab fa-github"></i> CyprusCoin Blockchain Explorer</a>
+					v1.0.0<br />
+					<span class="text-muted">Partially based on <strong>cryptonote-universal-pool</strong> and <strong>karbowanec</strong><br />
+					open sourced under the <a href="https://github.com/CyprusCoinClub/block-explorer/blob/master/LICENSE">AGPL</a></span>
 					</small>
 				</p>
 			</div>
 			<div class="col-lg-4 col-md-4 col-sm-6">
-			
-				<strong class="text-info">Node info</strong>
-				
-				<ul class="text-info">
-					<li>Status: <span id="node_connection" class="text-danger">Offline</span></li>
-					<li>Version: <span id="node_ver">...</span></li>
-					<li>Height: <span id="node_height">...</span></li>
-					<li>Last block: <span id="node_block">...</span></li>
-					<li>Difficulty: <span id="node_diff">...</span></li>
-					<li>Alt. blocks: <span id="node_alt">...</span></li>
-					<li>RPC connections: <span id="node_rpc">...</span></li>
-					<li>Incoming P2P connections: <span id="node_inc">...</span></li>
-					<li>Outgoing P2P connects: <span id="node_out">...</span></li>
-					<li>White peers: <span id="node_white">...</span></li>
-					<li>Grey peers: <span id="node_grey">...</span></li>
-				</ul>
-
+				<div class="pull-right">
+					<strong>Node info</strong>
+					
+					<ul>
+						<li>Status: <span id="node_connection" class="text-danger">Offline</span></li>
+						<li>Version: <span id="node_ver">...</span></li>
+						<li>Testnet: <span id="node_testnet">...</span></li>
+						<li>Height: <span id="node_height">...</span></li>
+						<li>Last block: <span id="node_block">...</span></li>
+						<li>Difficulty: <span id="node_diff">...</span></li>
+						<li>Alt. blocks: <span id="node_alt">...</span></li>
+						<li>RPC connections: <span id="node_rpc">...</span></li>
+						<li>Incoming P2P connections: <span id="node_inc">...</span></li>
+						<li>Outgoing P2P connects: <span id="node_out">...</span></li>
+						<li>White peers: <span id="node_white">...</span></li>
+						<li>Grey peers: <span id="node_grey">...</span></li>
+					</ul>
+				</div>
 			</div>
 		</div>
     </div>
@@ -609,3 +682,4 @@ $('#txt_search').keyup(function(e){
 	</script>	
 </body>
 </html>
+

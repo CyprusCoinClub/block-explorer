@@ -1,7 +1,8 @@
 <!-- // pools stats by MainCoins @ http://krb.mypool.name -->
 
 <style>
-	.container {
+	.navbar .container,
+	#content .container {
 		width: 100%;
 		padding: 0 40px;
 	}
@@ -45,7 +46,7 @@
 				<div class="col-sm-6 col-md-2">
 					<ul class="list-group">
 						<li class="list-group-item d-flex justify-content-between align-items-center active">
-							<i class="fa fa-tachometer"></i> Network Hashrate
+							<i class="fas fa-tachometer-alt"></i> Network Hashrate
 						</li>
 						
 						<li class="list-group-item d-flex justify-content-between align-items-center" data-toggle="tooltip" data-placement="bottom" data-original-title="Current estimated network hash rate. Calculated by current difficulty.">
@@ -96,28 +97,33 @@
 					</ul>
 				</div>
 				  <div class="col-sm-6 col-md-2">
-					<div class="panel panel-primary">
-					  <div class="panel-heading">
-						<h3 class="panel-title">Last block height</h3>
-					  </div>
-					  <div class="panel-body">
-						<span id="commonHeight"></span>
-					  </div>
-					</div>
+					<ul class="list-group">
+						<li class="list-group-item d-flex justify-content-between align-items-center active">
+							<i class="fas fa-tachometer-alt"></i> Last block height
+						</li>
+						
+						<li class="list-group-item d-flex justify-content-between align-items-center" data-toggle="tooltip" data-placement="bottom" data-original-title="Current estimated network hash rate. Calculated by current difficulty.">
+							<span id="commonHeight"></span>
+						</li>
+					</ul>
 				  </div>
 				  <div class="col-sm-6 col-md-4">
-					<div class="panel panel-primary">
-					  <div class="panel-heading">
-						<h3 class="panel-title">Last block hash</h3>
-					  </div>
-					  <div class="panel-body">
-						<span id="commonHash" class="break-word"></span>
-					  </div>
+						<ul class="list-group">
+							<li class="list-group-item d-flex justify-content-between align-items-center active">
+								<i class="fas fa-tachometer-alt"></i> Last block hash
+							</li>
+							
+							<li class="list-group-item d-flex justify-content-between align-items-center" data-toggle="tooltip" data-placement="bottom" data-original-title="Current estimated network hash rate. Calculated by current difficulty.">
+								<span id="commonHash" class="break-word"></span>
+							</li>
+						</ul>
 					</div>
 				  </div>
 			</div>
 
 
+<div class="panel">
+		<div class="panel-body">
 <div class="table-responsive">
     <table id="poolsTable" class="table table-hover sortable">
         <thead>
@@ -136,6 +142,10 @@
         </tbody>
     </table>
 </div>
+</div>
+</div>
+<div class="panel">
+		<div class="panel-body">
 <div class="table-responsive">
     <table id="nodesTable" class="table table-hover sortable">
         <thead>
@@ -156,6 +166,8 @@
         <tbody id="nodes_rows">
         </tbody>
     </table>
+</div>
+</div>
 </div>
 
 
@@ -239,13 +251,6 @@ function getPools() {
 			result = host.substr(0, index);
 		}
 
-		if (window.location.protocol == 'https:') {	
-			var pattern = /^((https):\/\/)/;
-			if(!pattern.test(url)) {
-				url = '/api/?mode=get&url=' + url;
-			}
-		}
-
 		$.getJSON(url, (data, textStatus, jqXHR) => {
 			it = it + 1;
 			if (data.pool == null){
@@ -297,24 +302,25 @@ function getPools() {
 		setCommons();
 	}, 500);
 }
+
+function getNodeName(url) {
+	var name = "";
+	nodesStat.forEach(function(node) {
+		if( url === node[1] ) {
+			name = node[0];
+		}
+	});
+	return name;
+}
+
 function getNodes() {
+	console.log(10);
 	nodesStat.forEach(function(node) {
 		
-		var url = node[0];
-		var purl;
-		if (window.location.protocol == 'https:') {	
-			var pattern = /^((https):\/\/)/;
-			if(!pattern.test(url)) {
-				purl = '/api/?mode=get&url=' + url;
-			} else {
-				purl = url;
-			}
-		} else {
-			purl = url;
-		}
+		var url = node[1];
 
 		$.ajax({
-			url: purl + '/getinfo',
+			url: url + '/getinfo',
 			dataType: 'json',
 			type: 'GET',
 			cache: 'false'
@@ -329,7 +335,17 @@ function getNodes() {
 				var datestring  = formatDate(data.start_time);
 				var agostring = $.timeago(dateTime);
 			}
-			$('#nodes_rows').append('<tr><td id=node-'+url+'><a target=blank href="'+url+'/getinfo">'+url+'</a></td><td class="height" id=nodeHeight-'+url+'>'+nodeHeight+'</td><td class="break-word hash" id=nodeHash-'+url+'>'+nodeHash+'</td><td id=known-'+url+'>'+data.last_known_block_index+'</td><td class="difficulty" id=diff-'+url+'>'+data.difficulty+'</td><td id=rpc-' + url + '>' + data.rpc_connections_count + '</td><td id=inc-'+url+'>'+ data.incoming_connections_count + '</td><td id=out-'+url+'>'+ data.outgoing_connections_count + '</td><td class="version" id=ver-'+url+'>'+ data.version + '</td><td class="date-time">' + formatDate(data.start_time) + ' (<span class="timeago">'+agostring+'</span>)</td></tr>');
+			rowText = '<tr><td id=node-'+url+'><a target=blank href="'+url+'/getinfo">'+getNodeName(url)+'</a></td>'
+			        + '<td class="height" id=nodeHeight-'+url+'>'+nodeHeight+'</td>'
+			        + '<td class="break-word hash" id=nodeHash-'+url+'>'+nodeHash+'</td>'
+			        + '<td id=known-'+url+'>'+data.last_known_block_index+'</td>'
+			        + '<td class="difficulty" id=diff-'+url+'>'+data.difficulty+'</td>'
+			        + '<td id=rpc-' + url + '>' + data.rpc_connections_count + '</td>'
+			        + '<td id=inc-'+url+'>'+ data.incoming_connections_count + '</td>'
+			        + '<td id=out-'+url+'>'+ data.outgoing_connections_count + '</td>'
+			        + '<td class="version" id=ver-'+url+'>'+ data.version + '</td>'
+			        + '<td class="date-time">' + formatDate(data.start_time) + ' (<span class="timeago">'+agostring+'</span>)</td></tr>'
+			$('#nodes_rows').append(rowText);
 			Versions.push(data.version);
 			nextDifficulties.push(parseInt(data.difficulty));
 			totalNodes++;
@@ -370,12 +386,6 @@ setInterval(function() {
 		}
 		it = it + 1;
 		
-		if (window.location.protocol == 'https:') {	
-			var pattern = /^((https):\/\/)/;
-			if(!pattern.test(url)) {
-				url = '/api/?mode=get&url=' + url;
-			}
-		}
 		
 		$.getJSON(url, (data, textStatus, jqXHR) => {
 			if (data.pool === undefined){			
@@ -434,20 +444,9 @@ setInterval(function() {
 	nodesStat.forEach(function(node) {
 		
 		var url = node[0];
-		var purl;
-		if (window.location.protocol == 'https:') {	
-			var pattern = /^((https):\/\/)/;
-			if(!pattern.test(url)) {
-				purl = '/api/?mode=get&url=' + url;
-			} else {
-				purl = url;
-			}
-		} else {
-			purl = url;
-		}
 		
 		$.ajax({
-			url: purl + '/getinfo',
+			url: purl + '/info',
 			dataType: 'json',
 			type: 'GET',
 			cache: 'false'
@@ -462,10 +461,10 @@ setInterval(function() {
 				var datestring  = formatDate(data.start_time);
 				var agostring = $.timeago(dateTime);
 			}
-			updateText('nodeHeight-'+url, nodeHeight);
-			updateText('nodeHash-'+url, nodeHash);
+			updateText('nodeHeight-'+url, nodeHeight.toLocaleString());
+			updateText('nodeHash-'+url, nodeHash.toLocaleString());
 			updateText('known-'+url, data.last_known_block_index);
-			updateText('diff-'+url, data.difficulty);
+			updateText('diff-'+url, data.difficulty.toLocaleString());
 			updateText('rpc-'+url, data.rpc_connections_count);
 			updateText('inc-'+url, data.incoming_connections_count);
 			updateText('out-'+url, data.outgoing_connections_count);
@@ -539,74 +538,10 @@ function setCommons(){
 	commonHash = mode(Hashes);
 	commonVersion = mode(Versions);
 	commonDifficulty = mode(nextDifficulties);
-	updateText('networkDifficulty', commonDifficulty.toString());
-	updateText('commonHeight', commonHeight.toString());
+	updateText('networkDifficulty', commonDifficulty.toLocaleString());
+	updateText('commonHeight', commonHeight.toLocaleString());
 	updateText('commonHash', commonHash);
-		
-	setTimeout(function(){ 
-		highlightOutliers();
-	}, 100);
-}
 
-function highlightOutliers() {
-	var poolRows = $('#pools_rows').children();
-	for (var i = 0; i < poolRows.length; i++) {
-		var row = $(poolRows[i]);
-		row.removeClass("warning").removeClass("danger");
-		row.find('.height').removeClass("text-danger");
-		row.find('.hash').removeClass("text-danger");
-		
-		var poolHeight = row.find('.height').text();
-		var poolHash = row.find('.hash').text();
-		if (poolHeight != commonHeight || poolHash != commonHash) {
-			row.addClass("warning");
-		}
-		if (poolHeight != commonHeight && poolHash != commonHash) {
-			row.addClass("danger");
-		}
-		if (poolHeight != commonHeight) {
-			row.find('.height').addClass("text-danger");
-		}
-		if (poolHash != commonHash) {
-			row.find('.hash').addClass("text-danger");
-		}
-	}
-
-	var nodeRows = $('#nodes_rows').children();
-	for (var i = 0; i < nodeRows.length; i++) {
-		var row = $(nodeRows[i]);
-		row.removeClass("warning").removeClass("danger");
-		row.find('.version').removeClass("text-warning");
-		row.find('.difficulty').removeClass("text-danger");
-		row.find('.height').removeClass("text-danger");
-		row.find('.hash').removeClass("text-danger");
-		
-		var nodeHeight = row.find('.height').text();
-		var nodeHash = row.find('.hash').text();
-		if (nodeHeight != commonHeight || nodeHash != commonHash) {
-			row.addClass("warning");
-		}
-		if (nodeHeight != commonHeight && nodeHash != commonHash) {
-			row.addClass("danger");
-		}
-		var nodeVersion = row.find('.version').text();
-		if (nodeVersion != commonVersion) {
-			row.find('.version').addClass("text-warning");
-		}
-		
-		if (nodeHeight != commonHeight) {
-			row.find('.height').addClass("text-danger");
-		}
-		if (nodeHash != commonHash) {
-			row.find('.hash').addClass("text-danger");
-		}
-		
-		var nodeDiff = row.find('.difficulty').text();
-		if (nodeDiff != commonDifficulty) {
-			row.addClass("warning");
-			row.find('.difficulty').addClass("text-danger");
-		}
-	}
 }
 
 </script>
