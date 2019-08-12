@@ -24,7 +24,7 @@ var nodesStat = [
   ["cyprus-1","https://mainnet.mycypruscoin.com/1"],
   ["cyprus-3","https://mainnet.mycypruscoin.com/3"],
   ["cyprus-4","https://mainnet.mycypruscoin.com/4"],
-  ["public.nodes.mycypruscoin.com","http://public.nodes.mycypruscoin.com:11975"],
+  ["public.nodes.mycypruscoin.com","https://mainnet.mycypruscoin.com/public-node"],
 ];
 
 var _networks = {
@@ -52,7 +52,7 @@ var _networks = {
       ["cyprus-1","https://mainnet.mycypruscoin.com/1"],
       ["cyprus-3","https://mainnet.mycypruscoin.com/3"],
       ["cyprus-4","https://mainnet.mycypruscoin.com/4"],
-      ["public.nodes.mycypruscoin.com","http://public.nodes.mycypruscoin.com:11975"],
+      ["public.nodes.mycypruscoin.com","https://mainnet.mycypruscoin.com/public-node"],
     ],
   },
   testnet: {
